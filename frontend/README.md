@@ -18,8 +18,19 @@ npm run dev
 ```
 
 Open the local URL printed by Vite. Its development server proxies `/api`
-requests to `http://127.0.0.1:8000`. Set `VITE_API_BASE_URL` only when using a
-separately hosted API; configure that server to allow the frontend origin.
+requests to `http://127.0.0.1:8000`.
+
+## Deploy on Vercel
+
+Set the Vercel project's **Root Directory** to `frontend`. The included
+`vercel.json` rewrites `/api/*` requests to the deployed Render API at
+`https://trustlens-api-54a3.onrender.com`. This keeps browser requests on the
+frontend's origin and avoids requiring cross-origin API access. When deploying
+to a different backend, update the rewrite destination before building.
+
+Render's free service can spin down while idle, so the first API request after
+inactivity may take longer. The API's `/health` endpoint is available at
+`https://trustlens-api-54a3.onrender.com/health`.
 
 To run the production build and automated UI checks:
 
