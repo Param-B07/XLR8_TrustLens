@@ -1,4 +1,5 @@
 import logging
+import os
 
 import httpx
 
@@ -7,9 +8,22 @@ URLHAUS_ENDPOINT = "https://urlhaus-api.abuse.ch/v1/url/"
 
 
 def check_urlhaus(url: str) -> dict:
+    auth_key = os.environ.get("URLHAUS_AUTH_KEY", "").strip()
+    if not auth_key:
+        return {
+            "status": "unavailable",
+            "match": None,
+            "detail": (
+                "URLhaus requires an Auth-Key. Configure URLHAUS_AUTH_KEY to enable "
+                "threat-feed lookups."
+            ),
+            "source": "URLhaus",
+        }
+
     try:
         response = httpx.post(
             URLHAUS_ENDPOINT,
+            headers={"Auth-Key": auth_key},
             data={"url": url},
             timeout=5.0,
             follow_redirects=False,
@@ -24,8 +38,25 @@ def check_urlhaus(url: str) -> dict:
             "detail": "URLhaus did not respond before the timeout.",
             "source": "URLhaus",
         }
+    except httpx.HTTPStatusError as exc:
+        status_code = exc.response.status_code
+        if status_code in {401, 403}:
+            logger.warning("URLhaus rejected the configured Auth-Key (HTTP %s)", status_code)
+            detail = (
+                "URLhaus rejected URLHAUS_AUTH_KEY. Check or regenerate the key in "
+                "the abuse.ch Authentication Portal."
+            )
+        else:
+            logger.warning("URLhaus returned HTTP %s", status_code)
+            detail = "URLhaus could not be reached or returned an error."
+        return {
+            "status": "unavailable",
+            "match": None,
+            "detail": detail,
+            "source": "URLhaus",
+        }
     except httpx.HTTPError:
-        logger.warning("URLhaus request failed", exc_info=True)
+        logger.warning("URLhaus request failed")
         return {
             "status": "unavailable",
             "match": None,

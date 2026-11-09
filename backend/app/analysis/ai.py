@@ -32,7 +32,7 @@ def suggest_language_cues(message: str) -> dict:
     try:
         from google import genai
         from google.genai.errors import APIError
-        from google.genai.types import GenerateContentConfig
+        from google.genai.types import GenerateContentConfig, HttpOptions
     except ImportError:
         logger.warning("Gemini is configured but google-genai is not installed")
         return {"status": "unavailable", "cues": []}
@@ -40,9 +40,12 @@ def suggest_language_cues(message: str) -> dict:
     prompt = _build_prompt(message)
     client = None
     try:
-        client = genai.Client(api_key=api_key)
+        client = genai.Client(
+            api_key=api_key,
+            http_options=HttpOptions(timeout=30_000),
+        )
         response = client.models.generate_content(
-            model=os.environ.get("GEMINI_MODEL", "gemini-2.5-flash"),
+            model=os.environ.get("GEMINI_MODEL", "gemini-3.8-flash"),
             contents=prompt,
             config=GenerateContentConfig(
                 response_mime_type="application/json",

@@ -28,8 +28,9 @@ def test_gemini_output_is_structured_and_quotes_are_validated(monkeypatch) -> No
             )()
 
     class FakeClient:
-        def __init__(self, api_key: str) -> None:
+        def __init__(self, api_key: str, http_options) -> None:
             assert api_key == "test-key"
+            assert http_options.timeout == 30_000
             self.models = FakeModels()
 
         def close(self) -> None:

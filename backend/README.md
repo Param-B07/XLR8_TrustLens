@@ -9,16 +9,42 @@ uv sync --extra dev
 uv run uvicorn app.main:app --reload
 ```
 
+For Render, use the repository's `render.yaml` blueprint. It sets the service
+root to `backend`, installs dependencies into Render's active environment,
+and starts Uvicorn bound to `0.0.0.0:$PORT` without the development reloader.
+For an existing Render service, set:
+
+- **Root Directory:** `backend`
+- **Build Command:** `uv sync --active --extra dev --extra ai`
+- **Start Command:** `uv run --active uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- **Health Check Path:** `/health`
+
+Set optional `GEMINI_API_KEY` and `URLHAUS_AUTH_KEY` environment variables in
+the Render dashboard. Never commit API keys. The local Hardhat node is not
+part of the Render service; configure a reachable EVM RPC and deployed
+`ThreatRegistry` separately before enabling on-chain commits in production.
+
 The API creates `data\reports.sqlite3` on startup (override its path with
 `$env:DATABASE_PATH`) and persists complete analysis reports there.
+
+URLhaus now requires an Auth-Key for API requests. Create a free key through
+the [abuse.ch Authentication Portal](https://auth.abuse.ch/), then configure
+it in the backend shell before starting FastAPI:
+
+```powershell
+$env:URLHAUS_AUTH_KEY = '<your URLhaus Auth-Key>'
+```
+
+Without this key, analysis still runs, but URLhaus is reported as unavailable
+and its finding is not treated as a no-match.
 
 Gemini support is optional. To enable it, run `uv sync --extra dev --extra ai`
 and set `$env:GEMINI_API_KEY`; otherwise deterministic analysis runs without an
 external model. When enabled, message text is sent to Google Gemini after
 extracted URLs, email addresses, and detected phone numbers are redacted.
-Submitted URLs and URLs extracted from messages are queried against public
-URLhaus. Do not submit sensitive content unless this external processing is
-acceptable.
+Submitted URLs and URLs extracted from messages are queried against URLhaus
+when `URLHAUS_AUTH_KEY` is configured. Do not submit sensitive content unless
+this external processing is acceptable.
 
 ## Automated tests
 

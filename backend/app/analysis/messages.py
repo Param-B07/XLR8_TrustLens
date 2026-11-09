@@ -261,7 +261,7 @@ def analyze_message(text: str) -> dict:
         "Only the first three extracted URLs receive full network inspection; no page content or scripts are fetched or executed.",
         "A missing threat-feed match does not establish that a URL or message is safe.",
         "If Gemini is configured, message text is sent to Google after extracted URLs, email addresses, and detected phone numbers are redacted.",
-        "Extracted URLs are queried against the public URLhaus service.",
+        "Extracted URLs are queried against URLhaus when its Auth-Key is configured.",
     ]
     if ai_result["status"] != "available":
         limitations.append(
