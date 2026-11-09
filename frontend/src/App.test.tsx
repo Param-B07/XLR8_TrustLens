@@ -125,6 +125,36 @@ describe("TrustLens dashboard", () => {
     );
   });
 
+  it("explains when a report is intact but has no on-chain commitment", async () => {
+    const user = userEvent.setup();
+    const unanchored: Verification = {
+      ...verification,
+      integrity_valid: false,
+      on_chain: {
+        ...verification.on_chain,
+        exists: false,
+        matches: false,
+        transaction_hash: null,
+      },
+    };
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(unanchored));
+    vi.stubGlobal("fetch", fetchMock);
+    render(<App />);
+
+    await user.click(screen.getAllByRole("button", { name: /Verify/i })[0]);
+    await user.click(screen.getByRole("tab", { name: "Report ID" }));
+    await user.type(screen.getByLabelText("Report ID"), report.report_id);
+    await user.click(screen.getByRole("button", { name: "Verify report" }));
+
+    const result = await screen.findByRole("status", {
+      name: "Verification result",
+    });
+    expect(within(result).getByText("No on-chain commitment found")).toBeVisible();
+    expect(within(result).getByText("Matches report content")).toBeVisible();
+    expect(within(result).getByText("Not found")).toBeVisible();
+    expect(within(result).getByText(/Anchor it from the investigation view/i)).toBeVisible();
+  });
+
   it("reports invalid JSON instead of sending it to the API", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.fn();

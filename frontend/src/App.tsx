@@ -298,6 +298,24 @@ function ReportPanel({
 
 function VerificationResult({ result }: { result: Verification }) {
   const verified = result.integrity_valid;
+  const reportContentMatches =
+    result.report_hash_valid && result.report_id_matches;
+  const title = verified
+    ? "Report verified"
+    : !reportContentMatches
+      ? "Report data or identifier does not match"
+      : !result.on_chain.exists
+        ? "No on-chain commitment found"
+        : "On-chain report hash does not match";
+  const description = verified
+    ? "The supplied report hash matches the on-chain commitment."
+    : !result.report_hash_valid
+      ? "The report content has changed since its claimed hash was calculated."
+      : !result.report_id_matches
+        ? "The report identifier does not match the identifier being verified."
+        : !result.on_chain.exists
+          ? "This report has no record on the configured contract. Anchor it from the investigation view before verifying. Restarting the local Hardhat node clears its records, so reports committed before a restart must be analyzed and anchored again."
+          : "The report content is internally consistent, but its hash differs from the on-chain commitment.";
   return (
     <section
       className={`verification-result ${verified ? "verification-valid" : "verification-invalid"}`}
@@ -309,16 +327,24 @@ function VerificationResult({ result }: { result: Verification }) {
       </div>
       <div className="verification-body">
         <span className="eyebrow">Integrity verification</span>
-        <h2>{verified ? "Report verified" : "Report could not be verified"}</h2>
-        <p>
-          {verified
-            ? "The supplied report hash matches the on-chain commitment."
-            : "The report, its identifier, or its on-chain commitment did not match."}
-        </p>
+        <h2>{title}</h2>
+        <p>{description}</p>
         <div className="verification-fields">
           <div>
             <span>Report ID</span>
             <code>{result.report_id}</code>
+          </div>
+          <div>
+            <span>Report hash</span>
+            <code>
+              {result.report_hash_valid
+                ? "Matches report content"
+                : "Does not match report content"}
+            </code>
+          </div>
+          <div>
+            <span>On-chain record</span>
+            <code>{result.on_chain.exists ? "Found" : "Not found"}</code>
           </div>
           <div>
             <span>Recomputed SHA-256</span>
