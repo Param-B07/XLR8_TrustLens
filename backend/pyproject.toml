@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "digital-trust-backend"
+version = "0.1.0"
+description = "Backend core for passive URL and TLS threat inspection"
+requires-python = ">=3.11"
+dependencies = [
+    "cryptography>=42.0.0",
+    "fastapi>=0.110.0",
+    "httpx>=0.27.0",
+    "uvicorn[standard]>=0.29.0",
+    "web3>=7.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0"]
+ai = ["google-genai>=1.0.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
