@@ -1,4 +1,4 @@
-# TrustLens MVP
+# TrustLens
 
 TrustLens is a passive, evidence-led web threat detection and digital trust intelligence dashboard. The project combines a FastAPI backend, SQLite report storage, a local Solidity threat registry, and a React dashboard for human investigation and independent report verification.
 
